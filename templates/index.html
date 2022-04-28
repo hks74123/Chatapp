@@ -1,0 +1,48 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8"/>
+    <title>Chat Rooms</title>
+</head>
+<body>
+    <textarea id="chat_history" style="width: 614px;
+    height: 293px;">
+        {% for c in chate %}
+        {{ c.message }}
+        {% endfor %}
+    </textarea><br>
+    <input id="room-name-input" type="text" size="100"><br>
+    <input id="room-name-submit" type="button" value="Send">
+    {{ grpname|json_script:"group-name" }}
+    <script>
+        const grp_name=JSON.parse (document.getElementById('group-name').textContent)
+        document.querySelector('#room-name-input').focus();
+        document.querySelector('#room-name-input').onkeyup = function(e) {
+            if (e.keyCode === 13) {
+                document.querySelector('#room-name-submit').click();
+            }
+        };
+        let ws= new WebSocket('ws://'+window.location.host+'/'+'ws/sc/'+grp_name+'/')
+            ws.onopen=function(){
+                console.log('websocket is open now..')
+                ws.send
+            }
+            ws.onmessage=function(event){
+                console.log('message recieve from server...',event)
+                const data=JSON.parse(event.data)
+                document.querySelector('#chat_history').value+=(data.msg+'\n')
+            }
+            ws.onclose=function(event){
+                console.log('server disconnected...')
+            } 
+        document.querySelector('#room-name-submit').onclick = function(e) {
+            const messagedom=document.getElementById('room-name-input')
+            const msg=messagedom.value
+            ws.send(JSON.stringify({
+                'msg':msg
+            }))
+            messagedom.value=''
+        };
+    </script>
+</body>
+</html>
